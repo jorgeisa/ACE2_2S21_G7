@@ -1,5 +1,6 @@
 
 
+JSONObject json;
 Particle[] particles;
 //Variables del Arduino
 int speed=0;            //0 - 18
@@ -11,10 +12,12 @@ float[] dirs = {0, 90, 180, 270};
 
 
 void setVars() {
-  speed = (int)random(0, 18);  
-  hum = (int)random(0, 100);
-  temp = (int)random(16, 40);
-  direction=dirs[(int)random(0, 4)];
+  String [] texto = loadStrings("http://localhost:4000/");
+  json = parseJSONObject(texto[0]);
+  speed = json.getInt("velocidad"); 
+  hum = json.getFloat("humedad");
+  temp = json.getFloat("temperatura");
+  direction= json.getFloat("direccion");
 }
 
 void setup() {
@@ -26,26 +29,30 @@ void setup() {
 }
 
 void drawSpeed() {
+  
   if (speed > 0) {
     frameRate(speed*4);
   } else {
-    frameRate(20);
+    frameRate(1);
   }
   println("velocidad:"+speed);
 }
 String dirText="Sin datos";
+float directionA ;
 void drawDirection() {
+  
   if (direction == 0) {
-    direction=PI/2;
+    
+    directionA=PI/2;
     dirText="Este";
   } else if (direction == 90) {
-    direction=PI;
+    directionA=PI;
     dirText="Norte";
   } else if (direction == 180) {
-    direction=3*PI/2;    
+    directionA=3*PI/2;    
     dirText="Oeste";
   } else if (direction == 270) {
-    direction=0;
+    directionA=0;
     dirText="Sur";
   }
   println("Direccion:"+direction);
@@ -54,24 +61,25 @@ void drawDirection() {
   println();
 }
 void drawHumidity() {
-  alpha = map(hum, 0, 100, 20, 80);
+  alpha = map(hum, 0, 100, 40, 5);
   fill(0, alpha);
   rect(0, 0, width, height);
   println("Humedad:"+hum);
 }
 
+
 void drawTemp() {
-  if (temp <24) {
+  if (temp <25) {
     for (int i = 0; i < 400; i++) { 
       particles[i].c=blueColor();
       textColor=color(0,0,255);
     }
-  } else if (temp >=24 && temp <32) {
+  } else if (temp >=25 && temp <30) {
     for (int i = 0; i < 400; i++) { 
       particles[i].c=greenColor();
       textColor=color(0,255,0);
     }
-  } else if (temp >=32) {
+  } else if (temp >=30) {
     for (int i = 0; i < 400; i++) { 
       particles[i].c=redColor();
       textColor=color(255,0,0);
@@ -109,6 +117,7 @@ void draw() {
   }
 
   updatePixels();
+  setVars();
 }
 
 
@@ -149,8 +158,8 @@ class Particle {
   }
 
   void update() {
-    posX += sin(direction);
-    posY += cos(direction);
+    posX += sin(directionA);
+    posY += cos(directionA);
   }
 
   void display() {
